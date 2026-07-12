@@ -33,10 +33,10 @@ const Auth = () => {
   const strength = getPasswordStrength(password);
   
   const getStrengthDisplay = () => {
-    if (password.length === 0) return { label: '', color: 'bg-slate-200 dark:bg-slate-700', text: '' };
-    if (strength <= 2) return { label: 'Weak', color: 'bg-accent-rose', text: 'text-accent-rose' };
-    if (strength === 3 || strength === 4) return { label: 'Good', color: 'bg-accent-amber', text: 'text-accent-amber' };
-    return { label: 'Strong', color: 'bg-brand-500', text: 'text-brand-500' };
+    if (password.length === 0) return { label: '', color: 'bg-slate-200', text: '' };
+    if (strength <= 2) return { label: 'Weak', color: 'bg-accent-rose', text: 'text-[var(--color-error)]' };
+    if (strength === 3 || strength === 4) return { label: 'Good', color: 'bg-accent-amber', text: 'text-[var(--color-warning)]' };
+    return { label: 'Strong', color: 'bg-[var(--color-primary)]', text: 'text-[var(--color-primary)]' };
   };
 
   const strengthDisplay = getStrengthDisplay();
@@ -70,7 +70,7 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 flex relative overflow-hidden transition-colors duration-300">
+    <div className="min-h-screen bg-white flex relative overflow-hidden transition-colors duration-300">
       
       {/* Left Panel — Image Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 overflow-hidden shadow-2xl z-10">
@@ -93,7 +93,7 @@ const Auth = () => {
             </div>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-md">AssetFlow</h1>
           </div>
-          <div className="inline-block mt-2 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/10 rounded-full">
+          <div className="inline-block mt-2 px-3 py-1 bg-white/10 border border-white/10 rounded-full">
             <p className="text-white/90 text-xs font-bold tracking-widest uppercase">Enterprise Platform</p>
           </div>
         </div>
@@ -113,7 +113,7 @@ const Auth = () => {
           <div className="flex flex-wrap gap-3 max-w-md">
             {['Real-time Tracking', 'Smart Allocations', 'Maintenance Logs', 'QR Audits'].map((f, i) => (
               <div key={i} className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-lg shadow-lg">
-                <CheckCircle2 size={16} className="text-brand-300" />
+                <CheckCircle2 size={16} className="text-[var(--color-primary)]" />
                 <span className="text-sm font-bold text-white drop-shadow-sm">{f}</span>
               </div>
             ))}
@@ -126,7 +126,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel — Form */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative bg-slate-50 dark:bg-slate-950">
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative bg-slate-50">
         
         {/* Subtle background decoration */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-500/5 dark:bg-brand-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -140,25 +140,25 @@ const Auth = () => {
               <div className="w-14 h-14 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/30">
                 <Package size={28} className="text-white" />
               </div>
-              <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-2">AssetFlow</h1>
+              <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight mt-2">AssetFlow</h1>
             </div>
           </div>
 
           <div className="mb-10 text-center lg:text-left">
-            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h2 className="text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">
               {isLogin ? 'Welcome back' : 'Create an account'}
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 text-base font-medium">
+            <p className="text-[var(--text-muted)] mt-2 text-base font-medium">
               {isLogin ? 'Enter your credentials to access your dashboard' : 'Join thousands of companies tracking their assets'}
             </p>
           </div>
 
           {/* Tab Toggle */}
-          <div className="flex mb-8 bg-slate-200/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200 dark:border-slate-800 p-1.5 rounded-xl">
+          <div className="flex mb-8 bg-slate-200/50/50 border border-[var(--border-default)] p-1.5 rounded-xl">
             <button
               onClick={() => { setIsLogin(true); setError(''); setPassword(''); }}
               className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
-                isLogin ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-md border border-slate-100 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                isLogin ? 'bg-[var(--bg-surface)] text-[var(--color-primary)] dark:text-[var(--color-primary)] shadow-md border border-[var(--border-default)]' : 'text-[var(--text-muted)] hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <LogIn size={16} /> Sign In
@@ -166,7 +166,7 @@ const Auth = () => {
             <button
               onClick={() => { setIsLogin(false); setError(''); setPassword(''); }}
               className={`flex-1 py-3 text-sm font-bold rounded-lg transition-all duration-200 flex items-center justify-center gap-2 ${
-                !isLogin ? 'bg-white dark:bg-slate-800 text-brand-600 dark:text-brand-400 shadow-md border border-slate-100 dark:border-slate-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                !isLogin ? 'bg-[var(--bg-surface)] text-[var(--color-primary)] dark:text-[var(--color-primary)] shadow-md border border-[var(--border-default)]' : 'text-[var(--text-muted)] hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <UserPlus size={16} /> Sign Up
@@ -176,35 +176,35 @@ const Auth = () => {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Full Name</label>
+                <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Full Name</label>
                 <input
                   type="text" required value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
+                  className="w-full px-4 py-3.5 bg-[var(--bg-surface)] border border-slate-300 rounded-xl text-[var(--text-primary)] text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
                   placeholder="e.g. John Doe"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Email Address</label>
+              <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Email Address</label>
               <input
                 type="email" required value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
+                className="w-full px-4 py-3.5 bg-[var(--bg-surface)] border border-slate-300 rounded-xl text-[var(--text-primary)] text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
                 placeholder="you@company.com"
               />
             </div>
 
             <div className="space-y-1.5">
               <div className="flex justify-between items-end">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">Password</label>
-                {isLogin && <a href="#" className="text-xs font-bold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300">Forgot password?</a>}
+                <label className="block text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Password</label>
+                {isLogin && <a href="#" className="text-xs font-bold text-[var(--color-primary)] dark:text-[var(--color-primary)] hover:text-[var(--color-primary)] dark:hover:text-[var(--color-primary)]">Forgot password?</a>}
               </div>
               <input
                 type="password" required value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
+                className="w-full px-4 py-3.5 bg-[var(--bg-surface)] border border-slate-300 rounded-xl text-[var(--text-primary)] text-sm placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all shadow-sm"
                 placeholder="••••••••"
               />
               
@@ -216,20 +216,20 @@ const Auth = () => {
                       <div 
                         key={level} 
                         className={`flex-1 rounded-full transition-colors duration-300 ${
-                          password.length === 0 ? 'bg-slate-200 dark:bg-slate-800' :
-                          strength >= level ? strengthDisplay.color : 'bg-slate-200 dark:bg-slate-800'
+                          password.length === 0 ? 'bg-slate-200' :
+                          strength >= level ? strengthDisplay.color : 'bg-slate-200'
                         }`}
                       ></div>
                     ))}
                   </div>
                   <div className="flex justify-between items-center text-[11px] font-bold">
-                    <span className="text-slate-500 dark:text-slate-400">Password strength</span>
+                    <span className="text-[var(--text-muted)]">Password strength</span>
                     {password.length > 0 && (
                       <span className={`${strengthDisplay.text}`}>{strengthDisplay.label}</span>
                     )}
                   </div>
                   {!isLogin && strength < 3 && password.length > 0 && (
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                    <p className="text-[10px] text-[var(--text-muted)] mt-1 font-medium">
                       Use 8+ chars with uppercase, numbers & symbols.
                     </p>
                   )}
@@ -238,7 +238,7 @@ const Auth = () => {
             </div>
 
             {error && (
-              <div className="text-accent-rose text-sm bg-accent-rose/10 border border-accent-rose/20 rounded-xl p-4 font-medium flex items-center gap-3">
+              <div className="text-[var(--color-error)] text-sm bg-accent-rose/10 border border-accent-rose/20 rounded-xl p-4 font-medium flex items-center gap-3">
                 <ShieldAlert size={18} className="flex-shrink-0" />
                 {error}
               </div>
@@ -247,7 +247,7 @@ const Auth = () => {
             <button
               type="submit"
               disabled={isSubmitting || (!isLogin && strength < 3 && password.length > 0)}
-              className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-brand-600 text-white text-sm font-bold rounded-xl hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-950 transition-all shadow-xl shadow-brand-600/20 disabled:opacity-50 disabled:cursor-not-allowed group mt-2"
+              className="w-full flex items-center justify-center gap-2 py-4 px-4 bg-[var(--color-primary)] text-white text-sm font-bold rounded-xl hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 focus:ring-offset-slate-50 dark:focus:ring-offset-slate-950 transition-all shadow-xl shadow-brand-600/20 disabled:opacity-50 disabled:cursor-not-allowed group mt-2"
             >
               {isSubmitting ? 'Processing...' : (
                 <>
@@ -260,30 +260,30 @@ const Auth = () => {
 
           {/* Demo Accounts Section */}
           {isLogin && (
-            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 text-center">Fast Login (Demo)</p>
+            <div className="mt-8 pt-6 border-t border-[var(--border-default)]">
+              <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider mb-3 text-center">Fast Login (Demo)</p>
               <div className="grid grid-cols-2 gap-2">
                 <button 
                   onClick={() => { setEmail('admin@assetflow.com'); setPassword('password123'); }}
-                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                  className="text-xs py-2 px-3 bg-[var(--bg-surface-2)] hover:bg-slate-200 text-[var(--text-primary)] font-bold rounded-lg transition-colors border border-[var(--border-default)]"
                 >
                   Admin
                 </button>
                 <button 
                   onClick={() => { setEmail('dwight.s@assetflow.com'); setPassword('password123'); }}
-                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                  className="text-xs py-2 px-3 bg-[var(--bg-surface-2)] hover:bg-slate-200 text-[var(--text-primary)] font-bold rounded-lg transition-colors border border-[var(--border-default)]"
                 >
                   Asset Mgr
                 </button>
                 <button 
                   onClick={() => { setEmail('michael.s@assetflow.com'); setPassword('password123'); }}
-                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                  className="text-xs py-2 px-3 bg-[var(--bg-surface-2)] hover:bg-slate-200 text-[var(--text-primary)] font-bold rounded-lg transition-colors border border-[var(--border-default)]"
                 >
                   Dept Head
                 </button>
                 <button 
                   onClick={() => { setEmail('jim.h@assetflow.com'); setPassword('password123'); }}
-                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                  className="text-xs py-2 px-3 bg-[var(--bg-surface-2)] hover:bg-slate-200 text-[var(--text-primary)] font-bold rounded-lg transition-colors border border-[var(--border-default)]"
                 >
                   Employee
                 </button>
@@ -292,9 +292,9 @@ const Auth = () => {
           )}
 
           {/* Added Trust Badges */}
-          <div className={`${isLogin ? 'mt-6' : 'mt-10'} pt-6 border-t border-slate-200 dark:border-slate-800`}>
-            <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold">
-              <Shield size={14} className="text-brand-500" />
+          <div className={`${isLogin ? 'mt-6' : 'mt-10'} pt-6 border-t border-[var(--border-default)]`}>
+            <div className="flex items-center justify-center gap-2 text-[var(--text-muted)] text-xs font-bold">
+              <Shield size={14} className="text-[var(--color-primary)]" />
               <span>Enterprise-grade security</span>
             </div>
           </div>

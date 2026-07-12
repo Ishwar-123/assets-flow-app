@@ -20,13 +20,22 @@ const ProtectedRoute = ({ children }) => {
   if (!user) return <Navigate to="/login" />;
   
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-950 dark:to-slate-900 transition-colors duration-300">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+    <div className="flex flex-col h-screen w-screen select-none overflow-hidden" style={{ background: 'var(--bg-app)' }}>
+      {/* Main Layout Grid */}
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
+        {/* Navigation Sidebar */}
+        <Sidebar />
+        {/* Workspace panel */}
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden" style={{ background: 'var(--bg-app)' }}>
+          {/* Header toolbar */}
+          <Header />
+          {/* Child route viewport */}
+          <main className="flex-1 min-h-0 overflow-hidden flex flex-col relative" style={{ background: 'var(--bg-app)' }}>
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

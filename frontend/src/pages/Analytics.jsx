@@ -161,14 +161,14 @@ const Analytics = () => {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto bg-transparent min-h-screen">
+    <div className="p-8 bg-transparent min-h-screen">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Actionable insights into asset utilization and lifecycle.</p>
+          <h1 className="text-3xl font-extrabold text-[var(--text-primary)] tracking-tight">Reports & Analytics</h1>
+          <p className="text-[var(--text-muted)] mt-1 font-medium">Actionable insights into asset utilization and lifecycle.</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => handleExport('full')} className="bg-brand-600 text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-brand-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-brand-600/20">
+          <button onClick={() => handleExport('full')} className="bg-[var(--color-primary)] text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-[var(--color-primary-hover)] hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-brand-600/20">
             <Download size={16} /> Export All (CSV)
           </button>
           <button onClick={handleExportPDF} className="bg-rose-600 text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-rose-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-rose-600/20">
@@ -178,19 +178,19 @@ const Analytics = () => {
       </div>
 
       {loading ? (
-        <div className="text-center py-20 text-slate-500 dark:text-slate-400 font-bold animate-pulse text-xl">Loading analytics...</div>
+        <div className="text-center py-20 text-[var(--text-muted)] font-bold animate-pulse text-xl">Loading analytics...</div>
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             
             {/* Utilization Chart */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-md overflow-hidden hover:shadow-lg transition-all group">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border-default)] bg-gradient-to-r from-brand-50/50 to-white">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><BarChart3 size={16} className="text-brand-600" /></div>
-                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Asset Utilization (Days)</h3>
+                  <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><BarChart3 size={16} className="text-[var(--color-primary)]" /></div>
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider">Asset Utilization (Days)</h3>
                 </div>
-                <button onClick={() => handleExport('utilization')} className="text-[11px] font-bold text-brand-600 hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
+                <button onClick={() => handleExport('utilization')} className="text-[11px] font-bold text-[var(--color-primary)] hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
                   <Download size={12} className="inline mr-1" />Export
                 </button>
               </div>
@@ -208,13 +208,13 @@ const Analytics = () => {
             </div>
 
             {/* Maintenance Pie */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-md overflow-hidden hover:shadow-lg transition-all group">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border-default)] bg-gradient-to-r from-emerald-50/50 to-white">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-emerald-100 flex items-center justify-center"><PieChartIcon size={16} className="text-emerald-600" /></div>
-                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Maintenance by Category</h3>
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider">Maintenance by Category</h3>
                 </div>
-                <button onClick={() => handleExport('maintenance')} className="text-[11px] font-bold text-brand-600 hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
+                <button onClick={() => handleExport('maintenance')} className="text-[11px] font-bold text-[var(--color-primary)] hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
                   <Download size={12} className="inline mr-1" />Export
                 </button>
               </div>
@@ -241,11 +241,11 @@ const Analytics = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* Department Allocations */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-amber-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-md overflow-hidden hover:shadow-lg transition-all group">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border-default)] bg-gradient-to-r from-amber-50/50 to-white">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-amber-100 flex items-center justify-center"><ArrowRightLeft size={16} className="text-amber-600" /></div>
-                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Department Allocations</h3>
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider">Department Allocations</h3>
                 </div>
               </div>
               <div className="p-6 h-72">
@@ -266,13 +266,13 @@ const Analytics = () => {
             </div>
 
             {/* Upcoming Retirements */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+            <div className="bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-md overflow-hidden hover:shadow-lg transition-all group">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border-default)] bg-gradient-to-r from-rose-50/50 to-white">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-rose-100 flex items-center justify-center"><AlertCircle size={16} className="text-rose-600" /></div>
-                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Upcoming Retirements</h3>
+                  <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider">Upcoming Retirements</h3>
                 </div>
-                <button onClick={() => handleExport('retirement')} className="text-[11px] font-bold text-brand-600 hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
+                <button onClick={() => handleExport('retirement')} className="text-[11px] font-bold text-[var(--color-primary)] hover:text-brand-800 bg-brand-50 border border-brand-100 px-2.5 py-1 transition-colors opacity-0 group-hover:opacity-100">
                   <Download size={12} className="inline mr-1" />Export
                 </button>
               </div>
@@ -282,7 +282,7 @@ const Analytics = () => {
                 ) : (
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="text-[11px] text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-700">
+                      <tr className="text-[11px] text-[var(--text-muted)] uppercase tracking-wider border-b border-[var(--border-default)]">
                         <th className="pb-3 font-bold">Asset Tag</th>
                         <th className="pb-3 font-bold">Name</th>
                         <th className="pb-3 font-bold">Acquired</th>
@@ -290,10 +290,10 @@ const Analytics = () => {
                     </thead>
                     <tbody>
                       {retiring.map(r => (
-                        <tr key={r._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:bg-slate-800/50/30 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                          <td className="py-3 font-mono text-sm font-bold text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 px-2 border border-slate-200 dark:border-slate-700 w-max">{r.assetTag}</td>
-                          <td className="py-3 px-3 text-sm font-medium text-slate-700 dark:text-slate-300">{r.name}</td>
-                          <td className="py-3 text-sm text-slate-500 dark:text-slate-400 font-mono">{new Date(r.acquisitionDate).toLocaleDateString()}</td>
+                        <tr key={r._id} className="border-b border-[var(--border-default)] even:bg-[var(--bg-surface-2)]/30 hover:bg-[var(--bg-surface-2)]/50 transition-colors">
+                          <td className="py-3 font-mono text-sm font-bold text-[var(--text-primary)] bg-[var(--bg-surface-2)] px-2 border border-[var(--border-default)] w-max">{r.assetTag}</td>
+                          <td className="py-3 px-3 text-sm font-medium text-[var(--text-primary)]">{r.name}</td>
+                          <td className="py-3 text-sm text-[var(--text-muted)] font-mono">{new Date(r.acquisitionDate).toLocaleDateString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -304,11 +304,11 @@ const Analytics = () => {
           </div>
 
           {/* Booking Heatmap */}
-          <div className="mt-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+          <div className="mt-6 bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-md overflow-hidden hover:shadow-lg transition-all group">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-[var(--border-default)] bg-gradient-to-r from-brand-50/50 to-white">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><CalendarIcon size={16} className="text-brand-600" /></div>
-                <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Resource Booking Peak Times</h3>
+                <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><CalendarIcon size={16} className="text-[var(--color-primary)]" /></div>
+                <h3 className="text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider">Resource Booking Peak Times</h3>
               </div>
             </div>
             <div className="p-6 h-72">

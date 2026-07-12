@@ -29,11 +29,52 @@ const getDashboardStats = async (req, res) => {
       const overdueReturns = await Allocation.find({ status: { $in: ['Active', 'Overdue'] }, expectedReturnDate: { $lt: today } }).populate('asset', 'name assetTag').populate('allocatedToUser', 'name');
       const upcomingReturns = await Allocation.find({ status: 'Active', expectedReturnDate: { $gte: today, $lte: next7Days } }).populate('asset', 'name assetTag').populate('allocatedToUser', 'name');
 
+      // --- MOCK CHART DATA ---
+      // 1. Inventory Trend (Last 30 Days)
+      const trendData = [];
+      let currentStock = 1200; // Starting baseline
+      for (let i = 30; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(today.getDate() - i);
+        // Slight random fluctuation trending upwards
+        currentStock += Math.floor(Math.random() * 15) - 5; 
+        trendData.push({
+          day: `Day ${30-i}`,
+          kg: currentStock
+        });
+      }
+
+      // 2. Status Distribution (Pie Chart)
+      const activeJobs = await Booking.countDocuments({ status: 'Ongoing' });
+      const pendingJobs = await Booking.countDocuments({ status: 'Upcoming' });
+      const urgentJobs = await Maintenance.countDocuments({ priority: 'High', status: { $in: ['Pending', 'In Progress'] } });
+      
+      const distributionData = [
+        { name: 'In Progress', value: activeJobs || 12, color: 'var(--color-primary)' },
+        { name: 'Pending', value: pendingJobs || 8, color: 'var(--color-warning)' },
+        { name: 'Urgent', value: urgentJobs || 4, color: 'var(--color-error)' },
+        { name: 'Completed', value: 24, color: 'var(--color-success)' }
+      ];
+
+      // 3. Weekly Output (Bar Chart)
+      const weeklyData = [
+        { week: 'Wk 1', planned: 200, completed: 180 },
+        { week: 'Wk 2', planned: 300, completed: 270 },
+        { week: 'Wk 3', planned: 250, completed: 250 },
+        { week: 'Wk 4', planned: 400, completed: 350 }
+      ];
+      // --- END MOCK CHART DATA ---
+
       return res.json({
         roleView: 'Global',
         kpis: { totalAssets, assetsAvailable, assetsAllocated, maintenanceTickets, activeBookings, pendingTransfers, overdueReturnsCount },
         overdueReturns,
-        upcomingReturns
+        upcomingReturns,
+        charts: {
+          trendData,
+          distributionData,
+          weeklyData
+        }
       });
     } 
     
