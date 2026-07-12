@@ -1,6 +1,7 @@
 const Asset = require('../models/Asset');
 const Allocation = require('../models/Allocation');
 const Maintenance = require('../models/Maintenance');
+const Booking = require('../models/Booking');
 
 const getDashboardStats = async (req, res) => {
   try {
@@ -8,24 +9,34 @@ const getDashboardStats = async (req, res) => {
     const assetsAvailable = await Asset.countDocuments({ status: 'Available' });
     const assetsAllocated = await Asset.countDocuments({ status: 'Allocated' });
     
-    // Maintenance today (Pending or In Progress)
-    const maintenanceTickets = await Maintenance.countDocuments({ 
-      status: { $in: ['Pending', 'In Progress'] } 
-    });
-
-    // Active Bookings (Allocations with status Active)
-    const activeBookings = await Allocation.countDocuments({ status: 'Active' });
-
-    // Overdue returns
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const maintenanceTickets = await Maintenance.countDocuments({ 
+      createdAt: { $gte: today, $lt: tomorrow }
+    });
+
+    const activeBookings = await Booking.countDocuments({ status: { $in: ['Upcoming', 'Ongoing'] } });
+
+    const pendingTransfers = await Allocation.countDocuments({ transferStatus: 'Requested' });
+
     const overdueReturnsCount = await Allocation.countDocuments({
-      status: 'Active',
+      status: { $in: ['Active', 'Overdue'] },
       expectedReturnDate: { $lt: today }
     });
 
-    const overdueAllocations = await Allocation.find({
-      status: 'Active',
+    const overdueReturns = await Allocation.find({
+      status: { $in: ['Active', 'Overdue'] },
       expectedReturnDate: { $lt: today }
+    }).populate('asset', 'name assetTag').populate('allocatedToUser', 'name');
+
+    const next7Days = new Date();
+    next7Days.setDate(today.getDate() + 7);
+    const upcomingReturns = await Allocation.find({
+      status: 'Active',
+      expectedReturnDate: { $gte: today, $lte: next7Days }
     }).populate('asset', 'name assetTag').populate('allocatedToUser', 'name');
 
     res.json({
@@ -35,9 +46,11 @@ const getDashboardStats = async (req, res) => {
         assetsAllocated,
         maintenanceTickets,
         activeBookings,
+        pendingTransfers,
         overdueReturnsCount
       },
-      overdueReturns: overdueAllocations
+      overdueReturns,
+      upcomingReturns
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

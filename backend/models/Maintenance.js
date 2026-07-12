@@ -10,7 +10,9 @@ const maintenanceSchema = new mongoose.Schema({
     enum: ['Pending', 'Approved', 'Rejected', 'In Progress', 'Resolved'], 
     default: 'Pending' 
   },
-  assignedTechnician: String
+  assignedTechnician: String,
+  resolutionNotes: { type: String },
+  rejectionReason: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Maintenance', maintenanceSchema);
