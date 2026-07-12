@@ -16,6 +16,7 @@ const Maintenance = () => {
 
   // Forms
   const [newRequest, setNewRequest] = useState({ asset: '', issueDescription: '', priority: 'Medium' });
+  const [photo, setPhoto] = useState(null);
   const [actionNotes, setActionNotes] = useState('');
   const [assignedTechnician, setAssignedTechnician] = useState('');
 
@@ -43,9 +44,24 @@ const Maintenance = () => {
   const handleRaiseRequest = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/api/maintenance', newRequest, getConfig());
+      const config = getConfig();
+      let payload;
+      
+      if (photo) {
+        payload = new FormData();
+        payload.append('asset', newRequest.asset);
+        payload.append('issueDescription', newRequest.issueDescription);
+        payload.append('priority', newRequest.priority);
+        payload.append('photoUrl', photo);
+        config.headers['Content-Type'] = 'multipart/form-data';
+      } else {
+        payload = newRequest;
+      }
+
+      await axios.post('http://localhost:5000/api/maintenance', payload, config);
       setIsModalOpen(false);
       setNewRequest({ asset: '', issueDescription: '', priority: 'Medium' });
+      setPhoto(null);
       fetchData();
     } catch (error) {
       console.error('Failed to raise request', error);
@@ -178,9 +194,13 @@ const Maintenance = () => {
                   <option value="Critical">Critical</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Attach Photo (Optional)</label>
+                <input type="file" accept="image/*" onChange={e => setPhoto(e.target.files[0])} className="w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-none file:border-0 file:text-sm file:font-bold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100" />
+              </div>
               
               <div className="pt-4 flex justify-end space-x-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm">Cancel</button>
+                <button type="button" onClick={() => { setIsModalOpen(false); setPhoto(null); }} className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm">Cancel</button>
                 <button type="submit" className="px-4 py-2 text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-md">Submit Request</button>
               </div>
             </form>
@@ -231,6 +251,12 @@ const Maintenance = () => {
                   <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
                     <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Technician</span>
                     <span className="text-sm font-bold text-brand-700">{selectedTicket.assignedTechnician}</span>
+                  </div>
+                )}
+                {selectedTicket.photoUrl && (
+                  <div className="border-t border-slate-200 dark:border-slate-700 pt-3 mt-3">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block mb-2">Attached Photo</span>
+                    <img src={`http://localhost:5000${selectedTicket.photoUrl}`} alt="Maintenance Issue" className="max-h-48 object-contain border border-slate-200 dark:border-slate-700 bg-white" />
                   </div>
                 )}
               </div>

@@ -100,9 +100,85 @@ const getBookingHeatmap = async (req, res) => {
 };
 
 const exportCSV = async (req, res) => {
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', 'attachment; filename="report.csv"');
-  res.send('Asset Name,Data\nDummy,123\n');
+  try {
+    const { type } = req.query;
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${type || 'report'}.csv"`);
+    
+    if (type === 'full') {
+      const assets = await Asset.find({}).populate('category', 'name').populate('department', 'name');
+      const allocations = await Allocation.find({ status: 'Active' }).populate('allocatedToUser', 'name').populate('allocatedToDepartment', 'name');
+      
+      let csv = 'Asset Tag,Name,Category,Department,Status,Condition,Allocated To\n';
+      
+      assets.forEach(asset => {
+        const alloc = allocations.find(a => a.asset.toString() === asset._id.toString());
+        let allocatedTo = 'None';
+        if (alloc) {
+          if (alloc.allocatedToUser) allocatedTo = alloc.allocatedToUser.name;
+          else if (alloc.allocatedToDepartment) allocatedTo = `Dept: ${alloc.allocatedToDepartment.name}`;
+        }
+        
+        csv += `"${asset.assetTag}","${asset.name}","${asset.category?.name || 'N/A'}","${asset.department?.name || 'N/A'}","${asset.status}","${asset.condition}","${allocatedTo}"\n`;
+      });
+      
+      return res.send(csv);
+    }
+
+    if (type === 'utilization') {
+      const assets = await Asset.find({});
+      const allocations = await Allocation.find({});
+      let csv = 'Asset Tag,Name,Days Allocated\n';
+      
+      assets.forEach(asset => {
+        const assetAllocs = allocations.filter(a => a.asset.toString() === asset._id.toString());
+        let days = 0;
+        assetAllocs.forEach(a => {
+          const end = a.returnDate || new Date();
+          days += Math.ceil((end - new Date(a.allocationDate)) / (1000 * 60 * 60 * 24));
+        });
+        csv += `"${asset.assetTag}","${asset.name}","${days}"\n`;
+      });
+      return res.send(csv);
+    }
+
+    if (type === 'maintenance') {
+      const tickets = await Maintenance.find().populate('asset');
+      const categories = await require('../models/AssetCategory').find({});
+      const freq = {};
+      
+      tickets.forEach(t => {
+        if (t.asset && t.asset.category) {
+          const catId = t.asset.category.toString();
+          freq[catId] = (freq[catId] || 0) + 1;
+        }
+      });
+      
+      let csv = 'Category Name,Total Maintenance Tickets\n';
+      Object.keys(freq).forEach(catId => {
+        const cat = categories.find(c => c._id.toString() === catId);
+        csv += `"${cat ? cat.name : 'Unknown'}","${freq[catId]}"\n`;
+      });
+      return res.send(csv);
+    }
+
+    if (type === 'retirement') {
+      const fiveYearsAgo = new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000);
+      const retiringAssets = await Asset.find({ acquisitionDate: { $lte: fiveYearsAgo }, status: { $ne: 'Disposed' } });
+      
+      let csv = 'Asset Tag,Name,Acquisition Date\n';
+      retiringAssets.forEach(asset => {
+        csv += `"${asset.assetTag}","${asset.name}","${new Date(asset.acquisitionDate).toLocaleDateString()}"\n`;
+      });
+      return res.send(csv);
+    }
+
+    // Default fallback
+    res.send('Asset Name,Data\nNo data found,0\n');
+  } catch (error) {
+    console.error('Export Error:', error);
+    res.status(500).send('Error generating report');
+  }
 };
 
 module.exports = {

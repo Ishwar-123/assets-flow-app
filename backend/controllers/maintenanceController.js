@@ -21,13 +21,19 @@ const raiseRequest = async (req, res) => {
     const assetDoc = await Asset.findById(asset);
     if (!assetDoc) return res.status(404).json({ message: 'Asset not found' });
 
-    const maintenance = await Maintenance.create({
+    const maintenanceData = {
       asset,
       reportedBy: req.user.id,
       issueDescription,
       priority,
       status: 'Pending'
-    });
+    };
+
+    if (req.files && req.files.photoUrl) {
+      maintenanceData.photoUrl = `/uploads/${req.files.photoUrl[0].filename}`;
+    }
+
+    const maintenance = await Maintenance.create(maintenanceData);
 
     await logActivity({
       actor: req.user.id,

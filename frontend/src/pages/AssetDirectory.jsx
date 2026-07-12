@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { Package, Search, Plus, Filter, X, Eye, FileText, Image, Download } from 'lucide-react';
+import { Search, Filter, Plus, Package, Edit, Trash2, Eye, ShieldCheck, Image, FileText, Download, X } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { getConfig } from '../context/AuthContext';
 
 const AssetDirectory = () => {
@@ -21,7 +22,8 @@ const AssetDirectory = () => {
   
   // Form State
   const [newAsset, setNewAsset] = useState({ 
-    name: '', category: '', description: '', acquisitionDate: '', cost: '', location: '', department: ''
+    name: '', category: '', description: '', acquisitionDate: '', cost: '', location: '', department: '',
+    serialNumber: '', condition: 'New', isBookable: false
   });
   const [customFieldValues, setCustomFieldValues] = useState({});
   const [files, setFiles] = useState({ photoUrl: null, documents: null });
@@ -76,7 +78,7 @@ const AssetDirectory = () => {
       
       alert(`Asset Registered Successfully! Auto-generated Tag: ${res.data.assetTag}`);
       setIsModalOpen(false);
-      setNewAsset({ name: '', category: '', description: '', acquisitionDate: '', cost: '', location: '', department: '' });
+      setNewAsset({ name: '', category: '', description: '', acquisitionDate: '', cost: '', location: '', department: '', serialNumber: '', condition: 'New', isBookable: false });
       setCustomFieldValues({});
       setFiles({ photoUrl: null, documents: null });
       fetchData();
@@ -179,9 +181,14 @@ const AssetDirectory = () => {
                 {assets.map(asset => (
                   <tr key={asset._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
                     <td className="px-4 py-4 font-mono text-slate-900 dark:text-white font-bold">
-                      <div className="flex items-center gap-2">
-                        {asset.photoUrl ? <Image size={16} className="text-brand-500" /> : <Package size={16} className="text-slate-400" />}
-                        {asset.assetTag}
+                      <div className="flex items-center gap-3">
+                        <div className="bg-white p-1 rounded-sm shadow-sm border border-slate-200">
+                          <QRCodeSVG value={asset.assetTag} size={28} />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {asset.photoUrl ? <Image size={14} className="text-brand-500" /> : <Package size={14} className="text-slate-400" />}
+                          {asset.assetTag}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-4">
@@ -339,6 +346,19 @@ const AssetDirectory = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
                 <textarea rows="2" value={newAsset.description} onChange={e => setNewAsset({...newAsset, description: e.target.value})} className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-none text-sm focus:ring-2 focus:ring-brand-500 outline-none" />
+              </div>
+
+              <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-800/50 p-3 border border-slate-200 dark:border-slate-700">
+                <input 
+                  type="checkbox" 
+                  id="isBookable"
+                  checked={newAsset.isBookable || false} 
+                  onChange={e => setNewAsset({...newAsset, isBookable: e.target.checked})}
+                  className="w-4 h-4 text-brand-600 bg-white border-slate-300 rounded focus:ring-brand-500"
+                />
+                <label htmlFor="isBookable" className="text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                  Shared / Bookable Resource
+                </label>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -12,7 +12,8 @@ const maintenanceSchema = new mongoose.Schema({
   },
   assignedTechnician: String,
   resolutionNotes: { type: String },
-  rejectionReason: { type: String }
+  rejectionReason: { type: String },
+  photoUrl: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Maintenance', maintenanceSchema);

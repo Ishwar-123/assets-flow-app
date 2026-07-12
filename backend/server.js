@@ -45,8 +45,13 @@ app.get('/', (req, res) => {
   res.send('AssetFlow Backend is running');
 });
 
+const initCronJobs = require('./cron/automationJobs');
+
 mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/assetflow')
-.then(() => console.log('MongoDB connection established successfully'))
+.then(() => {
+  console.log('MongoDB connection established successfully');
+  initCronJobs(); // Start cron jobs after DB connection
+})
 .catch(err => console.error('MongoDB connection error:', err));
 
 app.listen(PORT, () => {

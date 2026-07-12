@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Calendar as CalendarIcon, Clock, X, Plus, Ban, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, X, Plus, Ban, CheckCircle, AlertCircle, List, CalendarDays } from 'lucide-react';
 import { getConfig } from '../context/AuthContext';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import moment from 'moment';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+const localizer = momentLocalizer(moment);
 
 const Booking = () => {
   const [bookings, setBookings] = useState([]);
@@ -9,6 +14,7 @@ const Booking = () => {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ resource: '', startTime: '', endTime: '', purpose: '' });
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState('calendar'); // 'list' or 'calendar'
 
   useEffect(() => {
     fetchBookings();
@@ -79,9 +85,19 @@ const Booking = () => {
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Resource Bookings</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Book shared rooms, vehicles, and equipment.</p>
         </div>
-        <button onClick={() => { setShowModal(true); setError(''); }} className="px-5 py-2.5 bg-brand-600 text-sm font-bold text-white hover:bg-brand-700 hover:-translate-y-0.5 transition-all duration-200 flex items-center shadow-lg shadow-brand-600/20">
-          <Plus size={16} className="mr-2" /> New Booking
-        </button>
+        <div className="flex gap-4 items-center">
+          <div className="bg-white dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 flex shadow-sm">
+            <button onClick={() => setViewMode('calendar')} className={`px-4 py-1.5 text-sm font-bold flex items-center transition-colors ${viewMode === 'calendar' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+              <CalendarDays size={16} className="mr-2"/> Calendar
+            </button>
+            <button onClick={() => setViewMode('list')} className={`px-4 py-1.5 text-sm font-bold flex items-center transition-colors ${viewMode === 'list' ? 'bg-slate-100 dark:bg-slate-700 text-brand-600' : 'text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'}`}>
+              <List size={16} className="mr-2"/> List
+            </button>
+          </div>
+          <button onClick={() => { setShowModal(true); setError(''); }} className="px-5 py-2.5 bg-brand-600 text-sm font-bold text-white hover:bg-brand-700 hover:-translate-y-0.5 transition-all duration-200 flex items-center shadow-lg shadow-brand-600/20">
+            <Plus size={16} className="mr-2" /> New Booking
+          </button>
+        </div>
       </div>
 
       {/* Stats Bar */}
@@ -112,12 +128,36 @@ const Booking = () => {
             </button>
           </div>
         </div>
+      ) : viewMode === 'calendar' ? (
+        <div className="bg-white dark:bg-slate-900 shadow-md border border-slate-200 dark:border-slate-700 p-6 h-[700px]">
+          <Calendar
+            localizer={localizer}
+            events={bookings.map(b => ({
+              title: `${b.resource?.name || 'Resource'} - ${b.bookedBy?.name || 'User'}`,
+              start: new Date(b.startTime),
+              end: new Date(b.endTime),
+              allDay: false,
+              resource: b
+            }))}
+            startAccessor="start"
+            endAccessor="end"
+            style={{ height: '100%' }}
+            className="font-sans text-sm dark:text-slate-300"
+            eventPropGetter={(event) => {
+              let backgroundColor = '#4f46e5'; // brand-600
+              if (event.resource.status === 'Completed') backgroundColor = '#059669'; // emerald-600
+              if (event.resource.status === 'Cancelled') backgroundColor = '#64748b'; // slate-500
+              if (event.resource.status === 'Ongoing') backgroundColor = '#d97706'; // amber-600
+              return { style: { backgroundColor, borderRadius: '0px', border: 'none', fontWeight: 'bold' } };
+            }}
+          />
+        </div>
       ) : (
         <div className="space-y-6">
           {/* Active Bookings */}
           {upcomingBookings.length > 0 && (
             <div className="bg-white dark:bg-slate-900/90 backdrop-blur-xl shadow-md border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="px-6 py-4 bg-gradient-to-r from-brand-50 to-white border-b border-slate-200 dark:border-slate-700">
+              <div className="px-6 py-4 bg-gradient-to-r from-brand-50 to-white dark:from-slate-800 dark:to-slate-900 border-b border-slate-200 dark:border-slate-700">
                 <h3 className="text-sm font-extrabold text-brand-800 uppercase tracking-wider flex items-center gap-2">
                   <CalendarIcon size={16} className="text-brand-600" /> Active & Upcoming
                   <span className="bg-brand-600 text-white text-[10px] px-2 py-0.5 font-bold ml-2">{upcomingBookings.length}</span>
@@ -140,7 +180,7 @@ const Booking = () => {
                     {upcomingBookings.map(b => {
                       const sc = getStatusConfig(b.status);
                       return (
-                        <tr key={b._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:bg-slate-800/50/30 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <tr key={b._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:even:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors">
                           <td className="px-6 py-4">
                             <span className="font-bold text-slate-900 dark:text-white">{b.resource?.name}</span>
                             <span className="text-[11px] font-mono text-slate-400 ml-2 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 border border-slate-200 dark:border-slate-700">{b.resource?.assetTag}</span>
@@ -190,7 +230,7 @@ const Booking = () => {
                     {pastBookings.map(b => {
                       const sc = getStatusConfig(b.status);
                       return (
-                        <tr key={b._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:bg-slate-800/50/30 text-slate-500 dark:text-slate-400">
+                        <tr key={b._id} className="border-b border-slate-100 dark:border-slate-800 even:bg-slate-50 dark:even:bg-slate-800/50 text-slate-500 dark:text-slate-400">
                           <td className="px-6 py-3 font-medium">{b.resource?.name}</td>
                           <td className="px-6 py-3 text-sm">{b.bookedBy?.name}</td>
                           <td className="px-6 py-3 text-sm font-mono">{new Date(b.startTime).toLocaleDateString()}</td>
@@ -214,7 +254,7 @@ const Booking = () => {
       {showModal && (
         <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-slate-900/95 backdrop-blur-xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-lg">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50 to-white">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50 to-white dark:from-slate-800 dark:to-slate-900">
               <div>
                 <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">New Booking</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">Reserve a shared resource</p>
@@ -236,7 +276,7 @@ const Booking = () => {
                   value={formData.resource} onChange={(e) => setFormData({ ...formData, resource: e.target.value })} required
                 >
                   <option value="">Select Resource</option>
-                  {assets.map(a => <option key={a._id} value={a._id}>{a.name} ({a.assetTag})</option>)}
+                  {assets.filter(a => a.isBookable).map(a => <option key={a._id} value={a._id}>{a.name} ({a.assetTag})</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">

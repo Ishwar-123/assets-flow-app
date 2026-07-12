@@ -109,7 +109,7 @@ const Logs = () => {
       {/* Activity Logs Tab */}
       {activeTab === 'logs' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/30 to-white flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/30 to-white dark:from-slate-800 dark:to-slate-900 flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
               <Activity size={16} className="text-brand-600" /> System Activity Log
               <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] px-2 py-0.5 font-bold ml-1">{logs.length} entries</span>
@@ -167,7 +167,7 @@ const Logs = () => {
       {/* Notifications Tab */}
       {activeTab === 'notifications' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-amber-50/30 to-white flex items-center justify-between">
+          <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-amber-50/30 to-white dark:from-slate-800 dark:to-slate-900 flex items-center justify-between">
             <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
               <Bell size={16} className="text-amber-600" /> Notifications
               {unreadCount > 0 && (

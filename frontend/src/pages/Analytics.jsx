@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Download, BarChart3, PieChart as PieChartIcon, AlertCircle, ArrowRightLeft } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis } from 'recharts';
+import { Download, BarChart3, PieChart as PieChartIcon, AlertCircle, ArrowRightLeft, Calendar as CalendarIcon } from 'lucide-react';
 import { getConfig } from '../context/AuthContext';
+
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const Analytics = () => {
   const [utilization, setUtilization] = useState([]);
   const [maintenance, setMaintenance] = useState([]);
   const [retiring, setRetiring] = useState([]);
   const [deptSummary, setDeptSummary] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,17 +24,36 @@ const Analytics = () => {
       const config = getConfig();
       if (!config) return;
 
-      const [utilRes, maintRes, retireRes, deptRes] = await Promise.all([
+      const [utilRes, maintRes, retireRes, deptRes, heatRes] = await Promise.all([
         axios.get('http://localhost:5000/api/analytics/utilization', config),
         axios.get('http://localhost:5000/api/analytics/maintenance-frequency', config),
         axios.get('http://localhost:5000/api/analytics/upcoming-maintenance-retirement', config),
-        axios.get('http://localhost:5000/api/analytics/department-allocation-summary', config)
+        axios.get('http://localhost:5000/api/analytics/department-allocation-summary', config),
+        axios.get('http://localhost:5000/api/analytics/booking-heatmap', config)
       ]);
 
       setUtilization(utilRes.data.mostUsed || []);
       setMaintenance(maintRes.data || []);
       setRetiring(retireRes.data.retiringAssets || []);
       setDeptSummary(deptRes.data || []);
+      
+      // Process heatmap data
+      const bookings = heatRes.data || [];
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      let heat = [];
+      for(let d=0; d<7; d++) {
+        for(let h=0; h<24; h++) {
+          heat.push({ dayIndex: d, day: days[d], hour: h, count: 0 });
+        }
+      }
+      bookings.forEach(b => {
+        const start = new Date(b.startTime);
+        const day = start.getDay();
+        const hour = start.getHours();
+        const item = heat.find(x => x.dayIndex === day && x.hour === hour);
+        if (item) item.count++;
+      });
+      setHeatmapData(heat.filter(h => h.count > 0)); // Only show points with bookings
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
@@ -56,6 +79,73 @@ const Analytics = () => {
     }
   };
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); // slate-900
+    doc.text('AssetFlow Executive Report', 14, 22);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(100, 116, 139); // slate-500
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+    
+    // 1. Asset Utilization Table
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text('1. Top Asset Utilization (Days)', 14, 45);
+    
+    const utilData = utilization.map(u => [u.assetName, u.daysAllocated]);
+    doc.autoTable({
+      startY: 50,
+      head: [['Asset Name', 'Days Allocated']],
+      body: utilData,
+      theme: 'striped',
+      headStyles: { fillColor: [79, 70, 229] } // brand-600
+    });
+
+    // 2. Department Allocation Summary
+    const finalY = doc.lastAutoTable.finalY || 50;
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text('2. Department Allocations', 14, finalY + 15);
+    
+    const deptData = deptSummary.map(d => [d.department, d.count]);
+    doc.autoTable({
+      startY: finalY + 20,
+      head: [['Department Name', 'Total Assets Allocated']],
+      body: deptData,
+      theme: 'striped',
+      headStyles: { fillColor: [13, 148, 136] } // teal-600
+    });
+
+    // 3. Upcoming Retirements
+    const finalY2 = doc.lastAutoTable.finalY || finalY + 50;
+    
+    // Check if we need a new page
+    if (finalY2 > 230) {
+      doc.addPage();
+    }
+    
+    const currentY = doc.lastAutoTable.finalY > 230 ? 20 : finalY2 + 15;
+    
+    doc.setFontSize(14);
+    doc.setTextColor(15, 23, 42);
+    doc.text('3. Assets Nearing Retirement', 14, currentY);
+    
+    const retData = retiring.map(r => [r.assetTag, r.name, new Date(r.acquisitionDate).toLocaleDateString()]);
+    doc.autoTable({
+      startY: currentY + 5,
+      head: [['Asset Tag', 'Asset Name', 'Acquisition Date']],
+      body: retData,
+      theme: 'striped',
+      headStyles: { fillColor: [225, 29, 72] } // rose-600
+    });
+
+    doc.save('AssetFlow_Executive_Report.pdf');
+  };
+
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
@@ -77,9 +167,14 @@ const Analytics = () => {
           <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Reports & Analytics</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">Actionable insights into asset utilization and lifecycle.</p>
         </div>
-        <button onClick={() => handleExport('full')} className="bg-brand-600 text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-brand-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-brand-600/20">
-          <Download size={16} /> Export All (CSV)
-        </button>
+        <div className="flex gap-3">
+          <button onClick={() => handleExport('full')} className="bg-brand-600 text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-brand-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-brand-600/20">
+            <Download size={16} /> Export All (CSV)
+          </button>
+          <button onClick={handleExportPDF} className="bg-rose-600 text-white px-5 py-2.5 flex items-center gap-2 font-bold text-sm hover:bg-rose-700 hover:-translate-y-0.5 transition-all duration-200 shadow-lg shadow-rose-600/20">
+            <Download size={16} /> Export Report (PDF)
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -90,7 +185,7 @@ const Analytics = () => {
             
             {/* Utilization Chart */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/50 to-white">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/50 to-white dark:from-slate-800 dark:to-slate-900">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><BarChart3 size={16} className="text-brand-600" /></div>
                   <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Asset Utilization (Days)</h3>
@@ -114,7 +209,7 @@ const Analytics = () => {
 
             {/* Maintenance Pie */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50/50 to-white">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-emerald-50/50 to-white dark:from-slate-800 dark:to-slate-900">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-emerald-100 flex items-center justify-center"><PieChartIcon size={16} className="text-emerald-600" /></div>
                   <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Maintenance by Category</h3>
@@ -147,7 +242,7 @@ const Analytics = () => {
             
             {/* Department Allocations */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-amber-50/50 to-white">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-amber-50/50 to-white dark:from-slate-800 dark:to-slate-900">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-amber-100 flex items-center justify-center"><ArrowRightLeft size={16} className="text-amber-600" /></div>
                   <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Department Allocations</h3>
@@ -172,7 +267,7 @@ const Analytics = () => {
 
             {/* Upcoming Retirements */}
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
-              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50/50 to-white">
+              <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-rose-50/50 to-white dark:from-slate-800 dark:to-slate-900">
                 <div className="flex items-center gap-2">
                   <div className="w-8 h-8 bg-rose-100 flex items-center justify-center"><AlertCircle size={16} className="text-rose-600" /></div>
                   <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Upcoming Retirements</h3>
@@ -205,6 +300,43 @@ const Analytics = () => {
                   </table>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* Booking Heatmap */}
+          <div className="mt-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-md overflow-hidden hover:shadow-lg transition-all group">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-brand-50/50 to-white dark:from-slate-800 dark:to-slate-900">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-brand-100 flex items-center justify-center"><CalendarIcon size={16} className="text-brand-600" /></div>
+                <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">Resource Booking Peak Times</h3>
+              </div>
+            </div>
+            <div className="p-6 h-72">
+              {heatmapData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-slate-400 font-medium text-sm">No booking data available for heatmap</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                    <XAxis dataKey="hour" type="number" name="Hour" domain={[0, 23]} tickCount={24} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                    <YAxis dataKey="dayIndex" type="number" name="Day" domain={[0, 6]} tickCount={7} tickFormatter={tick => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][tick]} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 600 }} />
+                    <ZAxis dataKey="count" type="number" range={[50, 400]} name="Bookings" />
+                    <Tooltip cursor={{ strokeDasharray: '3 3' }} content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-slate-900 text-white px-4 py-3 shadow-xl border border-slate-700 text-sm">
+                            <p className="font-bold mb-1">{data.day} at {data.hour}:00</p>
+                            <p className="text-slate-300 text-xs">Bookings: <span className="text-white font-bold">{data.count}</span></p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }} />
+                    <Scatter name="Bookings" data={heatmapData} fill="#4f46e5" />
+                  </ScatterChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </div>
         </>

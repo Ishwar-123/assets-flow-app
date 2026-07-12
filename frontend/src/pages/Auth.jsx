@@ -208,8 +208,8 @@ const Auth = () => {
                 placeholder="••••••••"
               />
               
-              {/* Password Strength Meter (Only for Signup or if typing) */}
-              {(!isLogin || password.length > 0) && (
+              {/* Password Strength Meter (Only for Signup) */}
+              {!isLogin && (
                 <div className="pt-2">
                   <div className="flex gap-1 h-1.5 w-full mb-1.5">
                     {[1, 2, 3, 4, 5].map(level => (
@@ -258,8 +258,41 @@ const Auth = () => {
             </button>
           </form>
 
+          {/* Demo Accounts Section */}
+          {isLogin && (
+            <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 text-center">Fast Login (Demo)</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button 
+                  onClick={() => { setEmail('admin@assetflow.com'); setPassword('password123'); }}
+                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  Admin
+                </button>
+                <button 
+                  onClick={() => { setEmail('dwight.s@assetflow.com'); setPassword('password123'); }}
+                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  Asset Mgr
+                </button>
+                <button 
+                  onClick={() => { setEmail('michael.s@assetflow.com'); setPassword('password123'); }}
+                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  Dept Head
+                </button>
+                <button 
+                  onClick={() => { setEmail('jim.h@assetflow.com'); setPassword('password123'); }}
+                  className="text-xs py-2 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  Employee
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Added Trust Badges */}
-          <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800">
+          <div className={`${isLogin ? 'mt-6' : 'mt-10'} pt-6 border-t border-slate-200 dark:border-slate-800`}>
             <div className="flex items-center justify-center gap-2 text-slate-500 dark:text-slate-400 text-xs font-bold">
               <Shield size={14} className="text-brand-500" />
               <span>Enterprise-grade security</span>

@@ -7,7 +7,8 @@ const getAudits = async (req, res) => {
   try {
     const audits = await Audit.find({})
       .populate('auditors', 'name')
-      .populate('scopeDepartment', 'name');
+      .populate('scopeDepartment', 'name')
+      .populate('discrepancies.asset', 'name assetTag category location');
     res.json(audits);
   } catch (error) {
     res.status(500).json({ message: error.message });
