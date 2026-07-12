@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { getAssets, registerAsset, getAssetHistory } = require('../controllers/assetController');
+const { getAssets, registerAsset, getAssetHistory, updateAsset, deleteAsset } = require('../controllers/assetController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 
 const storage = multer.diskStorage({
@@ -20,6 +20,10 @@ const upload = multer({ storage: storage });
 router.route('/')
   .get(protect, getAssets)
   .post(protect, authorize('Asset Manager', 'Admin'), upload.fields([{ name: 'photoUrl', maxCount: 1 }, { name: 'documents', maxCount: 5 }]), registerAsset);
+
+router.route('/:id')
+  .put(protect, authorize('Asset Manager', 'Admin'), updateAsset)
+  .delete(protect, authorize('Asset Manager', 'Admin'), deleteAsset);
 
 router.route('/:id/history').get(protect, getAssetHistory);
 

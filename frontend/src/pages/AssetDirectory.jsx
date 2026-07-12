@@ -2,9 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Search, Filter, Plus, Package, Edit, Trash2, Eye, ShieldCheck, Image, FileText, Download, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { getConfig } from '../context/AuthContext';
+import { AuthContext, getConfig } from '../context/AuthContext';
 
 const AssetDirectory = () => {
+  const { user } = React.useContext(AuthContext);
   const [assets, setAssets] = useState([]);
   const [categories, setCategories] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -17,6 +18,8 @@ const AssetDirectory = () => {
 
   // Modals
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState(null);
   const [selectedAssetHistory, setSelectedAssetHistory] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   
@@ -85,6 +88,29 @@ const AssetDirectory = () => {
     } catch (error) {
       console.error('Failed to register asset', error);
       alert('Failed to register asset: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.put(`http://localhost:5000/api/assets/${editForm._id}`, editForm, getConfig());
+      setIsEditModalOpen(false);
+      fetchData();
+    } catch (error) {
+      console.error('Failed to edit asset', error);
+      alert('Failed to edit asset: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
+  const handleDelete = async (assetId) => {
+    if (!window.confirm('Are you sure you want to soft-delete this asset? It will be marked as Disposed.')) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/assets/${assetId}`, getConfig());
+      fetchData();
+    } catch (error) {
+      console.error('Failed to delete asset', error);
+      alert('Failed to delete asset');
     }
   };
 
@@ -204,9 +230,21 @@ const AssetDirectory = () => {
                       {asset.currentHolderUser ? asset.currentHolderUser.name : (asset.currentHolderDepartment ? asset.currentHolderDepartment.name : '—')}
                     </td>
                     <td className="px-4 py-4 text-right">
-                      <button onClick={() => handleViewHistory(asset._id)} className="text-brand-600 hover:text-brand-800 font-medium transition-colors flex items-center justify-end w-full">
-                        <Eye size={16} className="mr-1" /> View History
-                      </button>
+                      <div className="flex items-center justify-end gap-4">
+                        <button onClick={() => handleViewHistory(asset._id)} className="text-brand-600 hover:text-brand-800 transition-colors" title="View History">
+                          <Eye size={16} />
+                        </button>
+                        {(user?.role === 'Admin' || user?.role === 'Asset Manager') && (
+                          <>
+                            <button onClick={() => { setEditForm(asset); setIsEditModalOpen(true); }} className="text-amber-600 hover:text-amber-800 transition-colors" title="Edit Asset">
+                              <Edit size={16} />
+                            </button>
+                            <button onClick={() => handleDelete(asset._id)} className="text-accent-rose hover:text-rose-800 transition-colors" title="Delete Asset">
+                              <Trash2 size={16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -377,6 +415,71 @@ const AssetDirectory = () => {
                 <button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 shadow-md hover:shadow-lg rounded-none transition-all hover:-translate-y-0.5">Register Asset</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Asset Modal */}
+      {isEditModalOpen && editForm && (
+        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900/95 backdrop-blur-xl w-full max-w-xl rounded-none shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center"><Edit className="mr-2 text-brand-600" /> Edit Asset</h2>
+              <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors"><X size={20} /></button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="editAssetForm" onSubmit={handleEditSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Asset Name *</label>
+                    <input type="text" required value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-brand-500 outline-none rounded-none" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Category *</label>
+                    <select required value={editForm.category?._id || editForm.category} onChange={e => setEditForm({...editForm, category: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-brand-500 outline-none rounded-none">
+                      <option value="">Select Category</option>
+                      {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Condition</label>
+                    <select value={editForm.condition} onChange={e => setEditForm({...editForm, condition: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-brand-500 outline-none rounded-none">
+                      <option value="New">New</option>
+                      <option value="Good">Good</option>
+                      <option value="Fair">Fair</option>
+                      <option value="Poor">Poor</option>
+                      <option value="Damaged">Damaged</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Status</label>
+                    <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-brand-500 outline-none rounded-none">
+                      <option value="Available">Available</option>
+                      <option value="Allocated">Allocated</option>
+                      <option value="Under Maintenance">Under Maintenance</option>
+                      <option value="Lost">Lost</option>
+                      <option value="Disposed">Disposed</option>
+                      <option value="Retired">Retired</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">Location</label>
+                  <input type="text" value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-brand-500 outline-none rounded-none" />
+                </div>
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+              <button onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+              <button type="submit" form="editAssetForm" className="px-5 py-2.5 text-sm font-bold bg-brand-600 text-white hover:bg-brand-700 transition-colors shadow-md flex items-center">
+                <ShieldCheck size={16} className="mr-2"/> Save Changes
+              </button>
+            </div>
           </div>
         </div>
       )}

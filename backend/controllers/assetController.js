@@ -97,4 +97,54 @@ const getAssetHistory = async (req, res) => {
   }
 };
 
-module.exports = { getAssets, registerAsset, getAssetHistory };
+const updateAsset = async (req, res) => {
+  try {
+    const assetId = req.params.id;
+    const updateData = req.body;
+    
+    const asset = await Asset.findByIdAndUpdate(assetId, updateData, { new: true });
+    
+    if (!asset) {
+      return res.status(404).json({ message: 'Asset not found' });
+    }
+
+    await logActivity({
+      actor: req.user.id,
+      action: 'Asset Updated',
+      details: `Updated asset ${asset.assetTag}`,
+      entityType: 'Asset',
+      entityId: asset._id
+    });
+
+    res.json(asset);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteAsset = async (req, res) => {
+  try {
+    const assetId = req.params.id;
+    
+    // Soft Delete: Update status to Disposed instead of removing from DB
+    const asset = await Asset.findByIdAndUpdate(assetId, { status: 'Disposed' }, { new: true });
+    
+    if (!asset) {
+      return res.status(404).json({ message: 'Asset not found' });
+    }
+
+    await logActivity({
+      actor: req.user.id,
+      action: 'Asset Disposed',
+      details: `Disposed/Soft-deleted asset ${asset.assetTag}`,
+      entityType: 'Asset',
+      entityId: asset._id
+    });
+
+    res.json({ message: 'Asset successfully disposed', asset });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getAssets, registerAsset, getAssetHistory, updateAsset, deleteAsset };

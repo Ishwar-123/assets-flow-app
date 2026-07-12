@@ -95,11 +95,16 @@ const OrganizationSetup = () => {
     e.preventDefault();
     if (!catForm.name) return;
     try {
-      await axios.post('http://localhost:5000/api/categories', catForm, getConfig());
+      if (catForm.id) {
+        await axios.put(`http://localhost:5000/api/categories/${catForm.id}`, catForm, getConfig());
+      } else {
+        await axios.post('http://localhost:5000/api/categories', catForm, getConfig());
+      }
       setIsCatModalOpen(false);
       fetchData();
     } catch(err) {
       console.error('Failed to save category', err);
+      alert('Failed to save category');
     }
   };
 
@@ -118,9 +123,24 @@ const OrganizationSetup = () => {
     setCatForm({ ...catForm, customFields: updated });
   };
 
-  const openCatModal = () => {
-    setCatForm({ name: '', customFields: [] });
+  const openCatModal = (cat = null) => {
+    if (cat) {
+      setCatForm({ id: cat._id, name: cat.name, customFields: cat.customFields || [] });
+    } else {
+      setCatForm({ id: null, name: '', customFields: [] });
+    }
     setIsCatModalOpen(true);
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this category?')) return;
+    try {
+      await axios.delete(`http://localhost:5000/api/categories/${id}`, getConfig());
+      fetchData();
+    } catch (err) {
+      console.error('Failed to delete category', err);
+      alert(err.response?.data?.message || 'Failed to delete category');
+    }
   };
 
   // Role Action
@@ -220,14 +240,24 @@ const OrganizationSetup = () => {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Asset Categories</h2>
-                <button onClick={openCatModal} className="bg-brand-600 text-white px-4 py-2 rounded-none shadow-md hover:shadow-lg text-sm font-bold hover:bg-brand-700 hover:-translate-y-0.5 transition-all flex items-center">
+                <button onClick={() => openCatModal()} className="bg-brand-600 text-white px-4 py-2 rounded-none shadow-md hover:shadow-lg text-sm font-bold hover:bg-brand-700 hover:-translate-y-0.5 transition-all flex items-center">
                   <Plus size={16} className="mr-1" /> Add Category
                 </button>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categories.map(cat => (
-                  <div key={cat._id} className="p-6 border border-slate-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-900 hover:shadow-md transition-shadow">
-                    <h3 className="font-bold text-slate-900 dark:text-white flex items-center text-lg mb-2">
+                  <div key={cat._id} className="p-6 border border-slate-200 dark:border-slate-700 shadow-sm bg-white dark:bg-slate-900 hover:shadow-md transition-shadow relative group">
+                    
+                    <div className="absolute top-4 right-4 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => openCatModal(cat)} className="p-1.5 text-slate-400 hover:text-brand-600 bg-slate-100 hover:bg-brand-50 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-sm transition-colors" title="Edit Category">
+                        <Edit size={14} />
+                      </button>
+                      <button onClick={() => handleDeleteCategory(cat._id)} className="p-1.5 text-slate-400 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-sm transition-colors" title="Delete Category">
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <h3 className="font-bold text-slate-900 dark:text-white flex items-center text-lg mb-2 pr-12">
                       <Tags size={20} className="mr-2 text-brand-500" /> {cat.name}
                     </h3>
                     <div className="mt-4 space-y-1">
